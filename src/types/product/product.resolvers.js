@@ -19,10 +19,16 @@ const product = (_, args, ctx) => {
 const newProduct = (_, args, ctx) => {
   // use this fake ID for createdBy for now until we talk auth
   const createdBy = mongoose.Types.ObjectId()
+  if(!ctx.user || ctx.user.role !== roles.admin){
+    throw new AuthenticationError
+  }
   return Product.create({ ...args.input, createdBy })
 }
 
 const products = (_, args, ctx) => {
+  if(!ctx.user){
+    throw new AuthenticationError()
+  }
   return Product.find({})
     .lean()
     .exec()
@@ -30,12 +36,18 @@ const products = (_, args, ctx) => {
 
 const updateProduct = (_, args, ctx) => {
   const update = args.input
+  if(!ctx.user || ctx.user.role !== roles.admin){
+    throw new AuthenticationError()
+  }
   return Product.findByIdAndUpdate(args.id, update, { new: true })
     .lean()
     .exec()
 }
 
 const removeProduct = (_, args, ctx) => {
+  if(!ctx.user || ctx.user.role !== roles.admin){
+    throw new AuthenticationError()
+  }
   return Product.findByIdAndRemove(args.id)
     .lean()
     .exec()
